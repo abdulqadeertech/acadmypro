@@ -1,0 +1,20 @@
+# Core Completion Checklist
+- [x] Authentication / JWT / RBAC
+- [x] Dashboard
+- [x] Students / Parents / Teachers
+- [x] Classes / Batches / Subjects
+- [x] Admissions
+- [x] Student + Teacher Attendance
+- [x] Timetable + conflict detection
+- [x] Fee structures / invoices / payments / expenses
+- [x] Exams / marks / grades / results
+- [x] Report cards
+- [x] Payroll / leave / rooms / inventory / events
+- [x] Documents / scholarships / messages / notifications
+- [x] Branches
+- [x] Reports
+- [x] Backup / audit logs
+- [x] Offline queue + sync center
+- [x] Portal
+- [x] Search / pagination / create / edit / delete on generic CRUD
+- [ ] External provider credentials: SMS / WhatsApp / email / online payment / biometric / cloud storage

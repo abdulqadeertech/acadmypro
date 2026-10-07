@@ -1,0 +1,33 @@
+import { useEffect, useMemo, useState } from 'react';
+import { BellRing, Check, MessageSquare, Send, Users, WifiOff } from 'lucide-react';
+import { get, post } from '../lib/api';
+import { showToast } from '../components/ui';
+
+const templates = {
+  'Fee reminder': 'Dear parent, this is a reminder that the monthly fee for {{student}} is due. Please contact the academy office for details.',
+  'Attendance alert': 'Dear parent, {{student}} was marked absent today. Please contact the academy if this was unexpected.',
+  'Exam update': 'Dear parent, the latest exam update for {{student}} is now available in the AcademyPro portal.',
+  'General announcement': 'Dear parent, AcademyPro has a new announcement for you. Please check the parent portal for details.',
+};
+
+export default function SmsCommunication() {
+  const [parents, setParents] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState([]);
+  const [form, setForm] = useState({ template: 'Fee reminder', audience: 'all', message: templates['Fee reminder'] });
+  const update = (key, value) => setForm(previous => ({ ...previous, [key]: value }));
+  useEffect(() => { get('/parents').then(data => setParents(Array.isArray(data) ? data : data?.data || [])).catch(() => {}); }, []);
+  const recipientCount = useMemo(() => form.audience === 'all' ? parents.length : parents.filter(parent => parent.phone || parent.whatsapp).length, [parents, form.audience]);
+  const send = async event => {
+    event.preventDefault();
+    if (!form.message.trim()) return showToast('Write a message first', 'error');
+    setSending(true);
+    try {
+      const result = await post('/notifications', { title: `SMS: ${form.template}`, message: form.message, type: 'general', audience: 'parents', status: 'sent', sent_at: new Date().toISOString() });
+      setSent(previous => [{ id: result.id || Date.now(), template: form.template, message: form.message, recipients: recipientCount, time: new Date().toLocaleTimeString() }, ...previous]);
+      showToast('Parent alert recorded successfully');
+    } catch (error) { showToast(error.response?.data?.message || 'Could not send parent alert', 'error'); }
+    finally { setSending(false); }
+  };
+  return <section className="mx-auto max-w-6xl pb-8"><div className="mb-6"><p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-600">Keep families informed</p><h1 className="mt-2 text-3xl font-black text-slate-900">SMS Communication</h1><p className="mt-1 text-slate-500">Send timely alerts to parents about fees, attendance, exams and academy announcements.</p></div><div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]"><div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="mb-6 flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><MessageSquare size={21} /></div><div><h2 className="font-black text-slate-900">Create parent alert</h2><p className="text-sm text-slate-500">Use a template or write your own message.</p></div></div><form onSubmit={send} className="space-y-4"><label className="block"><span className="text-xs font-bold uppercase tracking-wide text-slate-500">Message type</span><select value={form.template} onChange={event => { const value = event.target.value; update('template', value); update('message', templates[value] || ''); }} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-200">{Object.keys(templates).map(template => <option key={template}>{template}</option>)}</select></label><label className="block"><span className="text-xs font-bold uppercase tracking-wide text-slate-500">Recipients</span><select value={form.audience} onChange={event => update('audience', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-200"><option value="all">All parents with contact details</option><option value="active">Active parent contacts only</option></select></label><label className="block"><span className="flex justify-between text-xs font-bold uppercase tracking-wide text-slate-500"><span>Message</span><span>{form.message.length}/160</span></span><textarea required maxLength="160" rows="5" value={form.message} onChange={event => update('message', event.target.value)} className="mt-1.5 w-full resize-y rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200" /></label><div className="flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><span className="flex items-center gap-2"><Users size={16} /> Estimated recipients</span><strong>{recipientCount || '—'}</strong></div><button disabled={sending} className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"><Send size={17} /> {sending ? 'Recording alert...' : 'Send parent alert'}</button></form></div><div className="space-y-4"><div className="rounded-2xl border border-amber-200 bg-amber-50 p-5"><div className="flex items-start gap-3"><WifiOff className="mt-0.5 text-amber-600" size={19} /><div><h3 className="font-bold text-amber-900">SMS provider status</h3><p className="mt-1 text-sm leading-6 text-amber-800">Alerts are saved in AcademyPro notifications. Connect an SMS provider in server settings to deliver them as live text messages.</p></div></div></div><div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><BellRing className="text-blue-600" size={21} /><h2 className="font-black text-slate-900">Recent parent alerts</h2></div>{sent.length === 0 ? <p className="mt-6 text-sm text-slate-400">No alerts sent in this session.</p> : <div className="mt-5 space-y-3">{sent.map(item => <div key={item.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3"><div className="flex items-center justify-between text-xs font-bold text-slate-500"><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> {item.template}</span><span>{item.time}</span></div><p className="mt-2 text-sm text-slate-700">{item.message}</p><p className="mt-2 text-xs text-slate-400">{item.recipients} parent contact(s)</p></div>)}</div>}</div></div></div></section>;
+}

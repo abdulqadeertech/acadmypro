@@ -1,0 +1,18 @@
+# Completion Matrix
+- Dashboard: working
+- Students/Parents/Teachers: CRUD/listing
+- Classes/Batches/Subjects: CRUD
+- Admissions: CRUD
+- Student + teacher attendance: working
+- Timetable: list/create API with conflict detection
+- Fees/invoices: generation/listing
+- Payments: recording/listing
+- Expenses: CRUD
+- Exams/results: CRUD + marks endpoint + grade
+- Payroll/leave/rooms/inventory/events/documents/scholarships/messages/notifications: CRUD
+- Reports: finance + attendance
+- Users/RBAC: JWT + roles + admin user CRUD
+- Branches: data model + CRUD
+- Backup: full JSON export
+- Offline: UI/API foundation can be extended with IndexedDB sync adapter
+- Integrations: provider-neutral; credentials required for SMS/WhatsApp/email/payment/biometric services

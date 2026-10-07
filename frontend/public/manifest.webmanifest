@@ -1,0 +1,9 @@
+{
+  "name": "AcademyPro Management System",
+  "short_name": "AcademyPro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "description": "Offline-ready academy management system"
+}
